@@ -18,12 +18,12 @@ CREATE TABLE users (
                        student_id VARCHAR(20) NOT NULL UNIQUE, -- 学号，唯一
                        name VARCHAR(100) NOT NULL,             -- 姓名
                        work VARCHAR(255) NOT NULL,             -- 负责工作
-                       class VARCHAR(100) NOT NULL,            -- 班级
+                       class_ VARCHAR(100) NOT NULL,            -- 班级
                        role_id INT NOT NULL,                   -- 角色 ID，外键关联 `roles` 表
                        FOREIGN KEY (role_id) REFERENCES roles(id) -- 外键关联到 `roles` 表
 );
 
-
+# 删除角色时级联删除用户
 ALTER TABLE users
     ADD CONSTRAINT fk_role_id
         FOREIGN KEY (role_id)
