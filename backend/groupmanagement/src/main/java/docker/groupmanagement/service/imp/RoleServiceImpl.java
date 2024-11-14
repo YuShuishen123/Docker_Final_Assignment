@@ -6,6 +6,8 @@ import docker.groupmanagement.mapper.RoleMapper;
 import docker.groupmanagement.service.RoleService;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public class RoleServiceImpl implements RoleService {
 
@@ -44,9 +46,10 @@ public class RoleServiceImpl implements RoleService {
         return roleMapper.updateRoleName(id, roleName);
     }
 
-    // 根据role_id查询user信息
-    public User findByRoleId(int roleId){
-        return roleMapper.findByRoleId(roleId);
+    // 根据role_id查询绑定所有user信息
+    @Override
+    public List<User> findUsersByRoleId(int roleId) {
+        return roleMapper.findUsersByRoleId(roleId);
     }
 
 }

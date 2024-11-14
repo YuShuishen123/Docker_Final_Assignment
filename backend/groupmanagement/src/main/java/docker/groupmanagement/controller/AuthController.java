@@ -2,34 +2,31 @@ package docker.groupmanagement.controller;
 
 import docker.groupmanagement.entity.Role;
 import docker.groupmanagement.service.RoleService;
+import docker.groupmanagement.service.UserService;
 import docker.groupmanagement.util.JwtUtil;
 import docker.groupmanagement.util.PasswordEncryption;
 import docker.groupmanagement.util.Result;
-import docker.groupmanagement.util.TokenCheck;
-import io.jsonwebtoken.Claims;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.dao.DataAccessException;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/auth")
+@RequestMapping("/roles")
 public class AuthController {
     // 引入RoleService
     private final RoleService roleService;
+    private final UserService userService;
     private final JwtUtil jwtUtil;
     private final PasswordEncryption passwordEncryption;
-    private final TokenCheck tokenCheck;
 
-    public AuthController(RoleService roleService,PasswordEncryption passwordEncryption, JwtUtil jwtUtil,TokenCheck tokenCheck) {
+    public AuthController(RoleService roleService,PasswordEncryption passwordEncryption, JwtUtil jwtUtil,UserService userService) {
         this.roleService = roleService;
+        this.userService = userService;
         this.passwordEncryption = passwordEncryption;
         this.jwtUtil = jwtUtil;
-        this.tokenCheck = tokenCheck;
     }
     // 注册功能
-    @RequestMapping("/register")
+    @PostMapping("/register")
     public Result register(@RequestParam String username, String password, String roleName) {
         Result result = new Result();
         // 校验输入
@@ -67,7 +64,7 @@ public class AuthController {
         }
     }
     // 登陆验证功能
-    @RequestMapping("/login")
+    @PostMapping("/login")
     public Result login(@RequestParam String username, String password) {
         Result result = new Result();
         // 输入格式验证
@@ -88,6 +85,7 @@ public class AuthController {
             if (passwordEncryption.verifyPassword(password, role.getPassword_hash())) {
                 result.setCode(200);
                 result.setMsg("登陆成功");
+                result.setData(userService.findAllUsers());
                 result.setToken(jwtUtil.generateToken(role.getUsername()));
             } else {
                 result.setCode(400);
@@ -106,32 +104,14 @@ public class AuthController {
             return result;
         }
     }
-
     // 修改密码功能
-    @RequestMapping("/changePassword")
+    @PatchMapping("/changePassword")
     public Result changePassword(@RequestParam String newPassword, HttpServletRequest request) {
         Result result = new Result();
-        // 从请求头中获取token
-        String token = request.getHeader("Authorization");
-        // 判断token是否为空
-        if (token == null || token.isEmpty()) {
-            result.setCode(400);
-            result.setMsg("token为空");
-            return result;
-        }
-        // 移除前缀
-        if (token.startsWith("Bearer ")) {
-            token = token.substring(7);
-        }
-        // 使用TokenCheck类进行token验证
-        if(null != tokenCheck.checkToken(token)){
-            return tokenCheck.checkToken(token);
-        }
         try {
-            // 从token中提取用户名
-            Claims claims = jwtUtil.verifyToken(token);
-            String username = claims.getSubject();
-
+            // 从请求中获取用户名（之前过滤器中已经设置了）
+            String username = (String) request.getAttribute("username");
+            String token = (String) request.getAttribute("token");
             // 根据用户名找到角色
             Role role = roleService.findByUsername(username);
             System.out.println("用户名：" + username);
@@ -141,12 +121,14 @@ public class AuthController {
                 result.setMsg("用户不存在");
                 return result;
             }
-
             // 修改密码
             String newPasswordHash = passwordEncryption.passwordEncryption(newPassword);  // 或者使用 BCryptPasswordEncoder
-            roleService.updatePassword(role.getId(), newPasswordHash);
-            System.out.println("新密码哈希：" + newPasswordHash);
-
+            int rowsAffected = roleService.updatePassword(role.getId(), newPasswordHash);
+            if (rowsAffected == 0) {
+                result.setCode(400);
+                result.setMsg("密码修改失败");
+                return result;
+            }
             // 销毁token
             result.setCode(200);
             result.setMsg("密码修改成功");
@@ -169,22 +151,8 @@ public class AuthController {
     @RequestMapping("/logout")
     public Result logout(HttpServletRequest request) {
         Result result = new Result();
-        // 从请求头中获取token
-        String token = request.getHeader("Authorization");
-        // 判断token是否为空
-        if (token == null || token.isEmpty()) {
-            result.setCode(400);
-            result.setMsg("token为空");
-            return result;
-        }
-        // 移除前缀
-        if (token.startsWith("Bearer ")) {
-            token = token.substring(7);
-        }
-        // 使用TokenCheck类进行token验证
-        if(null != tokenCheck.checkToken(token)){
-            return tokenCheck.checkToken(token);
-        }
+        // 从请求中获取加工后的 token（在过滤器中已存储）
+        String token = (String) request.getAttribute("token");
         try {
             // 销毁token
             result.setCode(200);
@@ -205,44 +173,28 @@ public class AuthController {
     }
 
     // 修改角色名称
-    @RequestMapping("/changeRoleName")
+    @PatchMapping("/changeRoleName")
     public Result changeRoleName(@RequestParam String newRoleName, HttpServletRequest request) {
         Result result = new Result();
-        // 从请求头中获取token
-        String token = request.getHeader("Authorization");
-        // 判断token是否为空
-        if (token == null || token.isEmpty()) {
-            result.setCode(400);
-            result.setMsg("token为空");
-            return result;
-        }
-        // 移除前缀
-        if (token.startsWith("Bearer ")) {
-            token = token.substring(7);
-        }
-        // 使用TokenCheck类进行token验证
-        if(null != tokenCheck.checkToken(token)){
-            return tokenCheck.checkToken(token);
-        }
         try{
-            // 从token中提取用户名
-            Claims claims = jwtUtil.verifyToken(token);
-            String username = claims.getSubject();
-
+            // 从请求中获取用户名（之前过滤器中已经设置了）
+            String username = (String) request.getAttribute("username");
             // 根据用户名找到角色
             Role role = roleService.findByUsername(username);
-
             if (role == null) {
                 result.setCode(400);
                 result.setMsg("用户不存在");
                 return result;
             }
             // 修改role_name
-            roleService.updateRoleName(role.getId(), newRoleName);
-            System.out.println("新角色名：" + newRoleName);
-
-            result.setCode(200);
-            result.setMsg("角色名称修改成功");
+            int updateResult = roleService.updateRoleName(role.getId(), newRoleName);
+            if(updateResult == 0){
+                result.setCode(400);
+                result.setMsg("角色名称修改失败");
+            }else{
+                result.setCode(200);
+                result.setMsg("角色名称修改成功");
+            }
             return result;
         }catch (DataAccessException e) {
             result.setCode(500);
@@ -258,34 +210,17 @@ public class AuthController {
     }
 
     // 注销角色功能
-    @RequestMapping("/deleteRole")
+    @DeleteMapping("/deleteRole")
     public Result deleteRole(HttpServletRequest request) {
         Result result = new Result();
-        // 从请求头中获取token
-        String token = request.getHeader("Authorization");
-        // 判断token是否为空
-        if (token == null || token.isEmpty()) {
-            result.setCode(400);
-            result.setMsg("token为空");
-            return result;
-        }
-        // 移除前缀
-        if (token.startsWith("Bearer ")) {
-            token = token.substring(7);
-        }
-        // 使用TokenCheck类进行token验证
-        if(null != tokenCheck.checkToken(token)){
-            return tokenCheck.checkToken(token);
-        }
         try{
-            // 从token中提取用户名
-            Claims claims = jwtUtil.verifyToken(token);
-            String username = claims.getSubject();
-
+            // 从请求中获取加工后的 token（在过滤器中已存储）
+            String token = (String) request.getAttribute("token");
+            // 从请求中获取用户名（之前过滤器中已经设置了）
+            String username = (String) request.getAttribute("username");
             // 根据用户名找到角色
             Role role = roleService.findByUsername(username);
             System.out.println("用户名：" + username);
-
             // 删除该角色
             int deleteResult = roleService.delete(role.getId());
             if (deleteResult == 0) {
@@ -297,7 +232,6 @@ public class AuthController {
             result.setMsg("删除成功");
             jwtUtil.destroyToken(token);
             return result;
-
         }catch (DataAccessException e) {
             result.setCode(500);
             result.setMsg("数据库错误");

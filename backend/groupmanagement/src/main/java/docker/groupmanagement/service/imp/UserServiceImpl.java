@@ -22,8 +22,8 @@ public class UserServiceImpl implements UserService {
     }
     // 插入用户
     @Override
-    public void insert(User user) {
-        userMapper.insert(user);
+    public int insert(User user) {
+        return userMapper.insert(user);
     }
     // 删除用户
     @Override
@@ -51,7 +51,13 @@ public class UserServiceImpl implements UserService {
         return userMapper.findByUsername(name);
     }
 
-    public void update(User user) {
-        userMapper.update(user);
+    public int update(User user, int role_id) {
+        return userMapper.update(user, role_id);
+    }
+
+    // 根据角色ID删除用户
+    @Override
+    public int deleteByRoleId(int roleId) {
+        return userMapper.deleteByRoleId(roleId);
     }
 }
