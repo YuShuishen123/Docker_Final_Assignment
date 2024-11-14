@@ -12,7 +12,7 @@ public interface UserService {
     User findById(int id);
 
     // 插入新用户
-    void insert(User user);
+    int insert(User user);
 
     // 删除用户
     void delete(int id);
@@ -23,7 +23,6 @@ public interface UserService {
     // 获取所有用户信息
     List<User> findAllUsers();
 
-
     // 根据学号查询用户信息
     User findByStudentId(String studentId);
 
@@ -31,5 +30,8 @@ public interface UserService {
     User findByUsername(String name);
 
     // 更改用户信息
-    void update(User user);
+    int update(User user, int role_id);
+
+    // 根据角色ID删除用户
+    int deleteByRoleId(int roleId);
 }

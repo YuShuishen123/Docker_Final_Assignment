@@ -3,6 +3,9 @@ package docker.groupmanagement.mapper;
 import docker.groupmanagement.entity.Role;
 import docker.groupmanagement.entity.User;
 import org.apache.ibatis.annotations.*;
+import org.springframework.data.repository.query.Param;
+
+import java.util.List;
 
 @Mapper
 public interface RoleMapper {
@@ -28,7 +31,8 @@ public interface RoleMapper {
     @Delete("DELETE FROM roles WHERE id = #{id}")
     int delete(@Param("id") int id);
 
-    // 根据role_id查询user信息
-    @Select("SELECT student_id, name, work, class_ FROM users WHERE role_id = #{roleId}")
-    User findByRoleId(int roleId);
+
+    // 根据 roleId 查找所有 User
+    @Select("SELECT student_id, name, work, class_  FROM users WHERE role_id = #{roleId}")
+    List<User> findUsersByRoleId(@Param("roleId") int roleId);
 }

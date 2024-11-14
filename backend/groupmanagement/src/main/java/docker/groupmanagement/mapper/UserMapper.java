@@ -1,10 +1,7 @@
 package docker.groupmanagement.mapper;
 
 import docker.groupmanagement.entity.User;
-import org.apache.ibatis.annotations.Delete;
-import org.apache.ibatis.annotations.Insert;
-import org.apache.ibatis.annotations.Mapper;
-import org.apache.ibatis.annotations.Select;
+import org.apache.ibatis.annotations.*;
 
 import java.util.List;
 
@@ -16,8 +13,8 @@ public interface UserMapper {
     User findByRoleId(int roleId);
 
     // 插入新用户
-    @Insert("INSERT INTO users (student_id, name, work, class_, role_id) VALUES ( #{studentId}, #{name}, #{work}, #{class}, #{roleId})")
-    void insert(User user);
+    @Insert("INSERT INTO users (student_id, name, work, class_, role_id) VALUES ( #{student_Id}, #{name}, #{work}, #{class_}, #{roleId})")
+    int  insert(User user);
 
     // 删除用户
     @Delete("DELETE FROM users WHERE id = #{id}")
@@ -28,17 +25,21 @@ public interface UserMapper {
     User findById(int id);
 
     // 根据学号查询信息
-    @Select("SELECT id, name, student_id, work, class_ FROM users WHERE student_id = #{studentId}")
+    @Select("SELECT id, name, student_id, work, class_ FROM users WHERE student_id = #{student_Id}")
     User findByStudentId(String studentId);
 
     @Select("SELECT id, name, student_id, work, class_ FROM users WHERE name = #{name}")
     User findByUsername(String name);
 
     // 更改用户信息
-    @Insert("UPDATE users SET name = #{name}, student_id = #{studentId}, work = #{work}, class_ = #{class} WHERE id = #{id}")
-    void update(User user);
+    @Update("UPDATE users SET name = #{user.name}, student_id = #{user.student_Id}, work = #{user.work}, class_ = #{user.class_} WHERE role_id = #{role_id}")
+    int update(@Param("user") User user, @Param("role_id") int roleId);
 
     //获取所有用户信息
     @Select("SELECT id, name, student_id, work, class_ FROM users")
     List<User> findAllUsers();
+
+    // 根据角色ID删除用户
+    @Delete("DELETE FROM users WHERE role_id = #{roleId}")
+    int deleteByRoleId(int roleId);
 }

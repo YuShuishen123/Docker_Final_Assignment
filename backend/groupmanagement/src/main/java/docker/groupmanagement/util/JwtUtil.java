@@ -7,19 +7,20 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
 
 @Component
 public class JwtUtil {
+    // 注入共享黑名单
+    TokenBlacklist tokenBlacklist;
+    public JwtUtil(TokenBlacklist tokenBlacklist) {
+        this.tokenBlacklist = tokenBlacklist;
+    }
+
     @Value("${jwt.secret}")
     private String secretKey;
 
     @Value("${jwt.expiration}")
     private long expirationTime;
-
-    // 模拟的黑名单，实际应用可以使用 Redis 或数据库来存储
-    private final Set<String> blacklistedTokens = new HashSet<>();
 
     // 生成 JWT
     public String generateToken(String username) {
@@ -39,20 +40,14 @@ public class JwtUtil {
                 .getBody();
     }
 
-    // 检查 JWT 是否过期
+    // 检查 JWT 是否有效
     public boolean isTokenExpired(String token) {
-        return verifyToken(token).getExpiration().before(new Date()) || blacklistedTokens.contains(token);
-    }
-
-    public boolean isTokenValid(String token) {
-        // 检查 token 是否在黑名单中
-        return  blacklistedTokens.contains(token);
-
+        return verifyToken(token).getExpiration().before(new Date()) || tokenBlacklist.isTokenBlacklisted(token);
     }
 
     // 模拟销毁 token，加入黑名单
     public void destroyToken(String token) {
         // 将 token 加入黑名单
-        blacklistedTokens.add(token);
+        tokenBlacklist.addToBlacklist(token);
     }
 }

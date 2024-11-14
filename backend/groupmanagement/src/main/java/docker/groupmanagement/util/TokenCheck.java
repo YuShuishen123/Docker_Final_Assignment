@@ -13,21 +13,14 @@ public class TokenCheck {
     public Result checkToken(String token) {
         Result result = new Result();  // 每次调用都创建一个新的 Result 实例
 
-        // 验证token有效性
-        if (jwtUtil.isTokenExpired(token)) {
-            result.setCode(400);
-            result.setMsg("token已过期");
-            return result;
-        }
-
         // 验证token是否无效
-        if (jwtUtil.isTokenValid(token)) {
+        if (jwtUtil.isTokenExpired(token)) {
             result.setCode(400);
             result.setMsg("token无效");
             return result;
         }
 
-
+        // 返回 null，表示 token 有效
         return null;  // token有效
     }
 }
