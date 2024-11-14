@@ -23,7 +23,6 @@ public class FilterConfig {
         registrationBean.setFilter(jwtFilter);  // 创建 JwtFilter 并注入 JwtUtil 和 TokenCheck
         registrationBean.addUrlPatterns("/*");  // 过滤器作用的 URL 模式，应用到所有路径
         registrationBean.setOrder(1);  // 设置过滤器的执行顺序，数字越小，优先级越高
-
         return registrationBean;
     }
 }
