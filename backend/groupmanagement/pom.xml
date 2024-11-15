@@ -13,6 +13,7 @@
     <version>0.0.1-SNAPSHOT</version>
     <name>groupmanagement</name>
     <description>groupmanagement</description>
+    <packaging>jar</packaging>
     <url/>
     <licenses>
         <license/>

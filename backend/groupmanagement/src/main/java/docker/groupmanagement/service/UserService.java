@@ -15,7 +15,7 @@ public interface UserService {
     int insert(User user);
 
     // 删除用户
-    void delete(int id);
+    int delete(int id);
 
     //根据角色id查询用户信息
     User findByRoleId(int RoleId);
