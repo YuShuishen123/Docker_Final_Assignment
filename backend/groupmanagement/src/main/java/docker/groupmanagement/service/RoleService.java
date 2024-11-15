@@ -19,7 +19,7 @@ public interface RoleService {
     int delete(int id);
 
     // 根据role_id查询user信息
-    List<User> findUsersByRoleId(int roleId);
+    User findUsersByRoleId(int roleId);
 
     // 根据用户名查询角色信息
     Role findByUsername(String username);

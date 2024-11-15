@@ -18,7 +18,7 @@ public interface UserMapper {
 
     // 删除用户
     @Delete("DELETE FROM users WHERE id = #{id}")
-    void delete(int id);
+    int delete(int id);
 
     // 根据 id 查询用户信息
     @Select("SELECT id, name, student_id, work, class_, role_id FROM users WHERE id = #{id}")

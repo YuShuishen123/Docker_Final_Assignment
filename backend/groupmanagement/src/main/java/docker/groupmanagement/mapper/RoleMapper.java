@@ -32,7 +32,7 @@ public interface RoleMapper {
     int delete(@Param("id") int id);
 
 
-    // 根据 roleId 查找所有 User
+    // 根据 roleId 查找 User
     @Select("SELECT student_id, name, work, class_  FROM users WHERE role_id = #{roleId}")
-    List<User> findUsersByRoleId(@Param("roleId") int roleId);
+    User findUsersByRoleId(@Param("roleId") int roleId);
 }

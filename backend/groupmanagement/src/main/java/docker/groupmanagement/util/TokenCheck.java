@@ -15,7 +15,6 @@ public class TokenCheck {
 
         // 验证token是否无效
         if (jwtUtil.isTokenExpired(token)) {
-            result.setCode(400);
             result.setMsg("token无效");
             return result;
         }
